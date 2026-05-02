@@ -34,6 +34,18 @@ async function setup() {
         );
     `);
 
+    // Opret Schedules-tabel
+    await db.exec(`
+        CREATE TABLE IF NOT EXISTS schedules (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER,
+            title TEXT,
+            schedule_json TEXT, -- Her gemmer vi hele ugestrukturen som JSON
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY(user_id) REFERENCES users(id)
+        );
+    `);
+
     // 4. Seeding af admin (Ligesom i dit Bratz-projekt)
     const adminPassword = process.env.ADMIN_PASS || 'admin123';
     const passwordHash = await bcrypt.hash(adminPassword, saltRounds);

@@ -3,6 +3,7 @@
     import Home from './pages/Home.svelte';
     import Dashboard from './pages/Dashboard.svelte';
     import CreateStory from './pages/CreateStory.svelte';
+    import CreateSchedule from './pages/CreateSchedule.svelte';
 
     import { user } from './stores/userStore.js';
     import { currentPage } from './stores/pageStore.js';
@@ -28,6 +29,10 @@
             ✨ Lav historie
         </button>
 
+        <button on:click={() => navigate('schedule')} class:active={$currentPage === 'schedule'}>
+            ✨ Lav skema
+        </button>
+
         </nav>
 </header>
 
@@ -40,6 +45,8 @@
                 <CreateStory />
             {:else if $currentPage === 'login'}
                 <Dashboard />
+            {:else if $currentPage === 'schedule'}
+                <CreateSchedule />
             {/if}
         {/key}
     </div>

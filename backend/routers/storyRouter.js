@@ -1,59 +1,162 @@
 import { Router } from 'express'
-import db from '../database/connection.js' // Genbrug din db-forbindelse
-import Groq from "groq-sdk" // Du har allerede denne dependency
+import db from '../database/connection.js' 
+import Groq from "groq-sdk" 
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const router = Router()
 
+
+// router.get('/api/stories', async (req, res) => {
+//     try {
+//         const stories = await db.all("SELECT * FROM stories ORDER BY created_at DESC");
+//         res.json({ data: stories });
+//     } catch (error) {
+//         res.status(500).json({ error: "Kunne ikke hente historier" });
+//     }
+// });
+
 router.post('/api/stories/generate', async (req, res) => {
     const { text } = req.body
+    console.log("📥 Tekst modtaget fra frontend:", text);
 
-    if (!text) return res.status(400).send("Ingen tekst modtaget.")
+    if (!text || text.trim() === "") {
+        return res.status(400).send("Ingen tekst modtaget.")
+    }
+
     if (!process.env.GROQ_API_KEY) {
         return res.status(500).send("GROQ_API_KEY mangler i miljøvariabler.")
     }
 
     try {
         const groq = new Groq({ apiKey: process.env.GROQ_API_KEY })
+        
         // 1. AI AGENT: Udtræk keywords
-        // Her bruger vi samme prompt-logik som i Bratz, men fokuseret på keywords
-        const prompt = `Du er en pædagogisk assistent. Analyser denne tekst og returner KUN en JSON-liste 
-                        med de 5 vigtigste substantiver (navneord) til piktogrammer.
-                        Tekst: "${text}"
-                        Svar kun med JSON array, f.eks: ["skole", "mad", "sove"]`
+
+        // første prompt forsøg
+        // const prompt = `System: Du er en piktogram-maskine. Du må KUN svare med rå JSON. Ingen forklaringer, ingen høflighed, ingen tekst før eller efter listen.
+        // Bruger: Oversæt disse danske ord til engelske piktogram-keywords i en JSON-liste: "${text}"
+        // Svar format: ["word1", "word2"]`;
+        
+        // andet forsøg med prompt
+        // const prompt = `System: Du er en pædagogisk piktogram-generator. Du er ekspert i at støtte børn med autisme gennem visuel struktur. 
+        // Du svarer KUN med rå JSON-data. Ingen forklaringer eller indledende tekst.
+
+        // Bruger: Analyser denne danske tekst: "${text}"
+
+        // Regler:
+        // 1. Find de 3-5 vigtigste konkrete handlinger eller navneord.
+        // 2. Oversæt ordene til ENGELSK (til brug i billedsøgning).
+        // 3. Returner en JSON-liste med objekter.
+
+        // Format eksempel: 
+        // ["word1", "word2"]`;
+
+        const prompt = `System: Du er en pædagogisk piktogram-generator. Du svarer KUN med rå JSON.
+        Bruger: Analyser denne danske tekst: "${text}"
+
+        Regler:
+        1. Find de 3-5 vigtigste handlinger eller navneord.
+        2. Oversæt ordene til ENGELSK (en) og behold den danske version (da).
+        3. Returner en JSON-liste med objekter.
+
+        Format eksempel: 
+        [{"da": "tandbørste", "en": "toothbrush"}, {"da": "seng", "en": "bed"}]`;
+
 
         const completion = await groq.chat.completions.create({
             messages: [{ role: "user", content: prompt }],
-            model: "llama-3.3-70b-versatile", // Samme model som i Bratz
+            model: "llama-3.3-70b-versatile", 
         })
 
-        const keywords = JSON.parse(completion.choices[0]?.message?.content || "[]")
+        const fullText = completion.choices[0]?.message?.content || "";
+        console.log("🤖 AI svarer:", fullText);
 
-        // 2. ARASAAC INTEGRATION: Find piktogrammer for hvert keyword
-        const pictogramSequence = []
-
-        for (const word of keywords) {
-            // Vi kalder det offentlige ARASAAC API, som du testede tidligere
-            const response = await fetch(`https://api.arasaac.org/api/pictograms/da/search/${encodeURIComponent(word)}`)
-            const data = await response.json()
-
-            if (data && data.length > 0) {
-                const id = data[0]._id // Tag det første match
-                pictogramSequence.push({
-                    keyword: word,
-                    url: `https://api.arasaac.org/api/pictograms/${id}`,
-                    id: id
-                })
+        // ROBUST JSON PARSING: Vi fjerner evt. tekst udenom selve listen
+        let keywords;
+        try {
+            const cleanJSON = fullText.replace(/```json|```/g, "").trim();
+            keywords = JSON.parse(cleanJSON);
+        } catch (e) {
+            console.error("❌ JSON parsing fejlede. Forsøger nød-parsing.");
+            // Hvis AI'en stadig snakker, prøver vi at finde alt mellem [ og ]
+            const match = fullText.match(/\[.*\]/s);
+            if (match) {
+                keywords = JSON.parse(match[0]);
+            } else {
+                throw new Error("AI svaret kunne ikke tolkes som JSON");
             }
         }
 
-        // 3. DATABASE: Gem historien (valgfrit trin til dit arkiv)
-        // Vi bruger db.run ligesom i blogRouter
+        // 2. ARASAAC INTEGRATION
+        const pictogramSequence = []
+
+// for (const word of keywords) {
+//     const cleanWord = word.trim().toLowerCase(); 
+
+//     try {
+//         // Vi bruger 'en' i stedet for 'da' i URL'en nu
+//         const response = await fetch(`https://api.arasaac.org/api/pictograms/en/bestSearch/${encodeURIComponent(cleanWord)}`);
+//         const data = await response.json();
+
+//         if (data && data.length > 0) {
+//             // Vi vælger det første match, men prioriterer 'aacColor: true' hvis muligt
+//             const bestMatch = data.find(p => p.aacColor) || data[0];
+//             const id = bestMatch._id; 
+
+//             pictogramSequence.push({
+//                 keyword: word, // Det engelske ord (eller din AI kan give dig begge)
+//                 url: `https://static.arasaac.org/pictograms/${id}/${id}_300.png`, 
+//                 id: id
+//             });
+//         }
+//     } catch (error) {
+//         console.error(`Fejl ved søgning på ${cleanWord}:`, error);
+//     }
+// }
+
+
+for (const item of keywords) {
+    // Da 'item' nu er et objekt f.eks. {"da": "tand", "en": "tooth"}
+    // bruger vi 'en' til søgning og 'da' til display
+    const searchWord = item.en ? item.en.trim().toLowerCase() : ""; 
+    const displayWord = item.da || searchWord;
+
+    if (!searchWord) continue;
+
+    try {
+        const response = await fetch(`https://api.arasaac.org/api/pictograms/en/bestSearch/${encodeURIComponent(searchWord)}`);
+        const data = await response.json();
+
+        if (data && data.length > 0) {
+            const bestMatch = data.find(p => p.aacColor) || data[0];
+            const id = bestMatch._id; 
+
+            pictogramSequence.push({
+                keyword: displayWord, // Her gemmes det danske ord til din frontend!
+                url: `https://static.arasaac.org/pictograms/${id}/${id}_300.png`, 
+                id: id
+            });
+        }
+    } catch (error) {
+        console.error(`Fejl ved søgning på ${searchWord}:`, error);
+    }
+}
+
+        // 3. DATABASE: Gem historien
+        // Vi bruger kolonnenavne fra din setup.js
         const result = await db.run(
             `INSERT INTO stories (title, raw_text, pictograms_json) VALUES (?, ?, ?)`,
-            [text.substring(0, 30) + "...", 
-            text,
-            JSON.stringify(pictogramSequence)]
-        )
+            [
+                text.substring(0, 30) + "...", 
+                text,
+                JSON.stringify(pictogramSequence)
+            ]
+        );
 
         res.json({ 
             success: true, 
@@ -66,5 +169,133 @@ router.post('/api/stories/generate', async (req, res) => {
         res.status(500).send("Agenten eller API'et fejlede.")
     }
 })
+
+// Indlæs dansk sprogfil (du kan senere gøre dette dynamisk baseret på brugerens valg)
+const daLocale = JSON.parse(fs.readFileSync('./locales/da.json', 'utf8'));
+
+router.post('/api/schedules/generate', async (req, res) => {
+    const { rows } = req.body;
+    const finalSchedule = [];
+
+    try {
+        for (let row of rows) {
+            let processedRow = { time: row.time };
+            
+            for (let day of ['mon', 'tue', 'wed', 'thu', 'fri']) {
+                let activity = row[day]?.toLowerCase().trim();
+                
+                if (activity) {
+                    let englishKeyword;
+                    let manualId = null;
+
+                    // 1. Tjek i18n Mappings (Ordbogen) først
+                    if (daLocale.mappings[activity]) {
+                        englishKeyword = daLocale.mappings[activity].en;
+                        manualId = daLocale.mappings[activity].manualId;
+                        console.log(`✅ i18n Match fundet for "${activity}": ${englishKeyword}`);
+                    } else {
+                        // 2. AI Fallback hvis ordet ikke er i vores ordbog
+                        const prompt = `Translate to 1 English word for pictogram search: "${activity}"`;
+                        const completion = await groq.chat.completions.create({
+                            messages: [{ role: "user", content: prompt }],
+                            model: "llama-3.3-70b-versatile",
+                        });
+                        englishKeyword = completion.choices[0]?.message?.content.trim();
+                    }
+
+                    // 3. ARASAAC Fetch (Brug manualId hvis det findes for 100% præcision)
+                    const searchId = manualId || null;
+                    let url;
+
+                    if (searchId) {
+                        url = `https://static.arasaac.org/pictograms/${searchId}/${searchId}_300.png`;
+                    } else {
+                        const response = await fetch(`https://api.arasaac.org/api/pictograms/en/bestSearch/${encodeURIComponent(englishKeyword)}`);
+                        const data = await response.json();
+                        const id = data[0]?._id;
+                        url = id ? `https://static.arasaac.org/pictograms/${id}/${id}_300.png` : null;
+                    }
+
+                    processedRow[day] = { keyword: row[day], url };
+                }
+            }
+            finalSchedule.push(processedRow);
+        }
+        res.json({ success: true, schedule: finalSchedule });
+    } catch (error) {
+        res.status(500).send("Fejl i skema-generering");
+    }
+});
+
+// router.post('/api/schedules/generate', async (req, res) => {
+//     const { rows } = req.body; // Modtager rækkerne fra Svelte
+//     const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+//     const finalSchedule = [];
+
+//     try {
+//         for (let row of rows) {
+//             let processedRow = { time: row.time };
+//             const days = ['mon', 'tue', 'wed', 'thu', 'fri'];
+
+//             for (let day of days) {
+//                 let activity = row[day];
+//                 if (activity && activity.trim() !== "") {
+                    
+//                 let englishKeyword;
+
+//                     // Hardcoded fix for de mest almindelige ord:
+//                     if (activity.toLowerCase().trim() === "pause") {
+//                         englishKeyword = "rest"; 
+//                     } else {
+//                         const prompt = `Translate this Danish activity to a single English keyword for a pictogram search: "${activity}". Return ONLY the English word.`;
+//                         const completion = await groq.chat.completions.create({
+//                             messages: [{ role: "user", content: prompt }],
+//                             model: "llama-3.3-70b-versatile",
+//                         });
+//                         englishKeyword = completion.choices[0]?.message?.content.trim();
+//                     }
+
+//                 // const activity = row[day];
+//                 // if (activity && activity.trim() !== "") {
+
+//                 //     // 1. AI: Oversæt aktiviteten til engelsk for bedre søgning
+//                 //     const prompt = `Translate this Danish activity to a single English keyword for a pictogram search: "${activity}". Return ONLY the English word.`;
+//                 //     const completion = await groq.chat.completions.create({
+//                 //         messages: [{ role: "user", content: prompt }],
+//                 //         model: "llama-3.3-70b-versatile",
+//                 //     });
+//                 //     const englishKeyword = completion.choices[0]?.message?.content.trim();
+
+//                     // 2. ARASAAC: Find piktogrammet
+//                     const response = await fetch(`https://api.arasaac.org/api/pictograms/en/bestSearch/${encodeURIComponent(englishKeyword)}`);
+//                     const data = await response.json();
+
+//                     if (data && data.length > 0) {
+//                         const bestMatch = data.find(p => p.aacColor) || data[0];
+//                         processedRow[day] = {
+//                             keyword: activity, // Bevar det danske navn til visning
+//                             url: `https://static.arasaac.org/pictograms/${bestMatch._id}/${bestMatch._id}_300.png`
+//                         };
+//                     }
+//                 } else {
+//                     processedRow[day] = null;
+//                 }
+//             }
+//             finalSchedule.push(processedRow);
+//         }
+
+//         // 3. Gem i databasen
+//         await db.run(
+//             `INSERT INTO schedules (title, schedule_json) VALUES (?, ?)`,
+//             ["Ugeskema", JSON.stringify(finalSchedule)]
+//         );
+
+//         res.json({ success: true, schedule: finalSchedule });
+
+//     } catch (error) {
+//         console.error("Skema fejl:", error);
+//         res.status(500).send("Kunne ikke generere skemaet.");
+//     }
+// });
 
 export default router

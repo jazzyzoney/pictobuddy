@@ -29,6 +29,7 @@
 
             if (data.success) {
                 pictograms = data.pictograms;
+                console.log("📸 Piktogrammer modtaget i Svelte:", pictograms);
                 toastr.success("Historie genereret! ✨");
             } else {
                 toastr.error("Fejl: " + (data.error || "Kunne ikke generere piktogrammer"));
