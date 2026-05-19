@@ -1,166 +1,110 @@
 <script>
-    import { onMount } from 'svelte';
+    import { currentPage } from './stores/pageStore.js';
+    import { user } from './stores/userStore.js';
     import Home from './pages/Home.svelte';
     import Dashboard from './pages/Dashboard.svelte';
     import CreateStory from './pages/CreateStory.svelte';
     import CreateSchedule from './pages/CreateSchedule.svelte';
-    import ViewSchedule from './pages/ViewSchedule.svelte';
+    import ViewSchedule from './pages/ViewSchedule.svelte'; // Husk at importere din nye side!
+    import { onMount } from 'svelte';
 
-    import { user } from './stores/userStore.js';
-    import { currentPage } from './stores/pageStore.js';
+    // Variabel til at holde skema-ID'et hvis vi er på ViewSchedule siden
+    let currentScheduleId = null;
 
-    import 'toastr/build/toastr.min.css'
-
-    function navigate(page) {
-        $currentPage = page;
+    // --- EN SIMPEL ROUTER ---
+    function handleHashChange() {
+        const hash = window.location.hash;
+        
+        // Tjekker om URL'en starter med #/view-schedule/
+        if (hash.startsWith('#/view-schedule/')) {
+            // Udtrækker ID'et (fx "7" fra "#/view-schedule/7")
+            currentScheduleId = hash.replace('#/view-schedule/', '');
+            // Skift visningen til ViewSchedule
+            currentPage.set('view-schedule');
+        } 
+        // Lyt også efter edit links: #/create-schedule?edit=7
+        else if (hash.startsWith('#/create-schedule')) {
+            currentPage.set('create-schedule');
+        }
     }
 
-    const routes = {
-    '/': Home,
-    '/create-schedule': CreateSchedule,
-    // Denne linje er vigtig - den fanger ID'et fra URL'en
-    '/view-schedule/:id': ViewSchedule, 
-  };
+    onMount(() => {
+        // Tjek URL'en når siden loader første gang
+        handleHashChange(); 
+        
+        // Lyt efter at brugeren trykker frem/tilbage eller på et link
+        window.addEventListener('hashchange', handleHashChange);
+        
+        return () => window.removeEventListener('hashchange', handleHashChange);
+    });
+    // ------------------------
+
+    function handleLogin() {
+        user.set({ name: 'Pædagog', role: 'admin' });
+    }
+
+    function handleLogout() {
+        user.set(null);
+        currentPage.set('home');
+    }
 </script>
 
-<header>
-    <div class="branding">
-        <h1 class="site-title">Pictogram Storyteller</h1>
-    </div>
-
-    <nav>
-        <button on:click={() => navigate('home')} class:active={$currentPage === 'home'}>
-            🏠 Hjem
-        </button>
-        
-        <button on:click={() => navigate('create')} class:active={$currentPage === 'create'}>
-            ✨ Lav historie
-        </button>
-
-        <button on:click={() => navigate('schedule')} class:active={$currentPage === 'schedule'}>
-            ✨ Lav skema
-        </button>
-
-        </nav>
-</header>
-
 <main>
-    <div class="content-card">
-        {#key $currentPage} 
-            {#if $currentPage === 'home'}
-                <Home />
-            {:else if $currentPage === 'create'} 
-                <CreateStory />
-            {:else if $currentPage === 'login'}
-                <Dashboard />
-            {:else if $currentPage === 'schedule'}
-                <CreateSchedule />
+    <nav class="no-print"> <div class="logo">
+            <span class="icon">✨</span>
+            Pictogram Storyteller
+        </div>
+        <div class="nav-links">
+            <button class:active={$currentPage === 'home'} on:click={() => { window.location.hash = ''; currentPage.set('home'); }}>Hjem</button>
+            <button class:active={$currentPage === 'create-story'} on:click={() => { window.location.hash = ''; currentPage.set('create-story'); }}>Ny Historie</button>
+            <button class:active={$currentPage === 'create-schedule'} on:click={() => { window.location.hash = '#/create-schedule'; currentPage.set('create-schedule'); }}>Nyt Ugeskema</button>
+        </div>
+        
+        <div class="auth">
+            {#if $user}
+                <span>Logget ind som {$user.name}</span>
+                <button on:click={handleLogout} class="logout-btn">Log ud</button>
+            {:else}
+                <button on:click={handleLogin} class="login-btn">Log ind</button>
             {/if}
-        {/key}
+        </div>
+    </nav>
+
+    <div class="content">
+        {#if $currentPage === 'home'}
+            <Home />
+        {:else if $currentPage === 'dashboard'}
+            <Dashboard />
+        {:else if $currentPage === 'create-story'}
+            <CreateStory />
+        {:else if $currentPage === 'create-schedule'}
+            <CreateSchedule />
+        {:else if $currentPage === 'view-schedule'}
+            <ViewSchedule id={currentScheduleId} />
+        {/if}
     </div>
 </main>
 
 <style>
-    header {
-        background-color: white;
-        padding-top: 10px;
-        padding-bottom: 10px;
-        box-shadow: 0 4px 15px rgba(255, 105, 180, 0.2);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        margin-bottom: 30px;
-        
-        width: 100%;
-        position: sticky; 
-        top: 0;
-        z-index: 1000;
-    }
+    /* Din eksisterende CSS ... */
+    main { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; min-height: 100vh;}
+    nav { background: white; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 2rem;}
+    .logo { font-size: 1.5rem; font-weight: bold; color: #2c3e50; display: flex; align-items: center; gap: 0.5rem;}
+    .nav-links { display: flex; gap: 1rem; }
+    .nav-links button { background: none; border: none; padding: 0.5rem 1rem; font-size: 1rem; color: #666; cursor: pointer; border-radius: 4px; transition: all 0.2s;}
+    .nav-links button:hover { background: #f0f2f5; color: #2c3e50; }
+    .nav-links button.active { background: #e3f2fd; color: #0d6efd; font-weight: 500;}
+    .auth { display: flex; align-items: center; gap: 1rem; }
+    .login-btn, .logout-btn { padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: 500;}
+    .login-btn { background: #0d6efd; color: white; border: none;}
+    .login-btn:hover { background: #0b5ed7;}
+    .logout-btn { background: white; color: #dc3545; border: 1px solid #dc3545;}
+    .logout-btn:hover { background: #dc3545; color: white;}
+    .content { max-width: 1200px; margin: 0 auto; padding: 0 2rem;}
 
-    .branding {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 15px;
-        margin-bottom: 10px;
-        width: 100%;
+    @media print {
+        .no-print { display: none !important; }
+        .content { padding: 0; margin: 0; max-width: 100%; }
+        main { background-color: white; }
     }
-/* 
-    .site-logo {
-        height: 50px;
-        width: auto;
-    } */
-
-    .site-title {
-        margin: 0;
-        font-size: 3rem;
-        color: #d63384;
-        letter-spacing: 2px;
-        text-shadow: 2px 2px 0px #ffc0cb;
-    }
-
-    /* .site-title a {
-    text-decoration: none; 
-    color: inherit; 
-    cursor: pointer;
-    } */
-
-    nav { 
-        display: flex; 
-        gap: 15px; 
-        padding: 10px; 
-        justify-content: center;
-        flex-wrap: wrap;
-        width: 100%;
-        background-color: rgba(255, 255, 255, 0.9); 
-        border-top: 1px solid #ffe4e1;
-    }
-
-    button {
-        padding: 8px 16px;
-        cursor: pointer;
-        border: 2px solid transparent;
-        background: white;
-        border-radius: 25px;
-        font-size: 0.9rem;
-        font-weight: bold;
-        color: #555;
-        transition: all 0.2s ease;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-    }
-
-    button:hover { 
-        background-color: #fff0f5; 
-        color: #d63384;
-        transform: translateY(-2px);
-    }
-
-    button.active {
-        background-color: #d63384;
-        color: white;
-        box-shadow: 0 4px 10px rgba(214, 51, 132, 0.4);
-    }
-
-    main {
-        padding: 20px;
-        max-width: 1200px; /* Keeps content readable/centered */
-        margin: 0 auto;    /* Centers the main block */
-        width: 90%;        /* Adds padding on small screens */
-    }
-
-    .content-card {
-        background: rgba(255, 255, 255, 0.8);
-        padding: 20px;
-        border-radius: 20px;
-    }
-
-    /* .logout-btn {
-        background-color: #ffebee;
-        color: #c62828;
-        border: 1px solid #c62828;
-    }
-    .logout-btn:hover {
-        background-color: #c62828;
-        color: white;
-    } */
 </style>

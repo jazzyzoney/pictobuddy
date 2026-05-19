@@ -1,30 +1,32 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     
-    // svelte-spa-router sender automatisk params med id'et herind
-    export let params: { id?: string } = { id: '' }; 
-    let id = params.id; 
+    // Vi modtager nu ID'et direkte fra App.svelte
+    export let id: string; 
 
     let schedule: any = null;
     let loading = true;
+    let errorMsg = "";
 
     onMount(async () => {
-        if (!id) return;
         try {
             const response = await fetch(`http://localhost:8080/api/schedules/${id}`);
             const data = await response.json();
+            
             if (data.success) {
                 schedule = data.data;
+            } else {
+                errorMsg = "Skemaet blev ikke fundet.";
             }
-        } catch (error) {
-            console.error("Fejl ved hentning af skema:", error);
+        } catch (err) {
+            errorMsg = "Fejl ved forbindelse til serveren.";
         } finally {
             loading = false;
         }
     });
-    
+
     function editSchedule() {
-        window.location.hash = `/create-schedule?edit=${id}`;
+        window.location.hash = `#/create-schedule?edit=${id}`;
     }
 </script>
 

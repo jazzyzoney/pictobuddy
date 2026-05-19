@@ -3,7 +3,12 @@
   "scenarios": {
     "school": {
       "label": "Skole",
-      "activities": ["Dansk", "Matematik", "Pause", "Frokost", "Idræt", "Tysk", "Billedkunst", "Fransk", "Svømning", "Religion"]
+      "activities": ["Dansk", "Tysk", "Fransk", "Engelsk", "Samfundsfag", "Historie",
+                    "Matematik", "Natur/Teknik", "Fysik/Kemi", "Biologi", "Geografi", 
+                    "Pause", "Frokost", 
+                    "Idræt", "Billedkunst", "Musik",  "Madkundskab", "Svømning", "Religion", "Håndværk & Design", "Fiske", "Cykeltur", "Park", "Fodbold", "Legeplads",
+                    "Nyheder", "Avis", "Lydbog"
+                  ]
     },
     "home": {
       "label": "Hjemme",
@@ -12,6 +17,37 @@
   },
   "mappings": {
     "pause": { "en": "rest", "manualId": 3051 },
-    "dansk": { "en": "denmark", "manualId": 5442 }
+    "dansk": { "en": "danish", "manualId": 21799 },
+    "tysk": { "en": "german", "manualId": 8011 },
+    "fransk": { "en": "french", "manualId": 8121 },
+    "engelsk": { "en": "english", "manualId": 32705 },
+    "samfundsfag": { "en": "social studies", "manualId": "" },
+    "historie": { "en": "history", "manualId": 32632 },
+    "Madkundskab": { "en": "", "manualId": 2342 },
+    "Musik": { "en": "", "manualId": 4922 },
+    "Lydbog": { "en": "audiobook", "manualId": 26650 },
+    "matematik": { "en": "mathematics", "manualId": 10260 },
+    "natur_teknik": { "en": "science/technology", "manualId": 36922 },
+    "fysik_kemi": { "en": "physics/chemistry", "manualId": "" },
+    "biologi": { "en": "biology", "manualId": 36362 },
+    "geografi": { "en": "geography", "manualId": 5505 },
+    "frokost": { "en": "lunch", "manualId": 3383 },
+    "idraet": { "en": "physical education", "manualId": 7010 },
+    "billedkunst": { "en": "art", "manualId": 7794 },
+    "svomning": { "en": "swimming", "manualId": 6568 },
+    "religion": { "en": "religion", "manualId": 27059 },
+    "haandvaerk_design": { "en": "craft & design", "manualId": 7068 },
+    "fiske": { "en": "fishing", "manualId": 6592 },
+    "cykeltur": { "en": "bike ride", "manualId": 6045 },
+    "park": { "en": "park", "manualId": 30609 },
+    "fodbold": { "en": "football", "manualId": 5961 },
+    "legeplads": { "en": "playground", "manualId": 2859 },
+    "nyheder": { "en": "news", "manualId": "" },
+    "avis": { "en": "newspaper", "manualId": 2845 },
+
+    "boerste_taender": { "en": "brush teeth", "manualId": 6971 },
+    "morgenmad": { "en": "breakfast", "manualId": 4626 },
+    "lege": { "en": "play", "manualId": 9813 },
+    "sove": { "en": "sleep", "manualId": 6479 }
   }
 }
