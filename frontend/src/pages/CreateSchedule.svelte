@@ -2,6 +2,9 @@
     import toastr from 'toastr';
     import 'toastr/build/toastr.min.css';
     import { onMount } from 'svelte';
+    
+    // Import your updated da.json localization file directly
+    import daLocale from '../locales/da.json';
 
     let loading = false;
     let scheduleRows: Array<{ time: string; [key: string]: string }> = [
@@ -11,8 +14,24 @@
     let shareLink = "";
 
     const days = ['mon', 'tue', 'wed', 'thu', 'fri'];
+    let selectedScenario: "school" | "home" = "school";
 
-    // 1. Tjek om vi er i "Rediger-tilstand" (Edit Mode)
+    // 1. Flatten all activities dynamically to assist validation during schedule imports
+    $: allActivities = Object.values(daLocale.scenarios).flatMap(scenario => 
+        Object.values(scenario.subcategories || {}).flatMap(sub => sub.activities)
+    );
+
+    // 2. Reactively resolve subcategories for the selected scenario and sort items alphabetically
+    $: currentSubcategories = Object.entries(daLocale.scenarios[selectedScenario]?.subcategories || {}).map(([key, sub]) => {
+        return {
+            id: key,
+            label: sub.label,
+            activities: [...sub.activities].sort((a, b) => 
+                a.localeCompare(b, 'da', { sensitivity: 'base' })
+            )
+        };
+    });
+
     onMount(async () => {
         const urlParams = new URLSearchParams(window.location.hash.split('?')[1]);
         const editId = urlParams.get('edit');
@@ -24,17 +43,18 @@
                 const data = await response.json();
                 
                 if (data.success && data.data) {
-                    // Hvis skemaet findes, mapper vi det tilbage til vores editor-format
                     scheduleRows = data.data.map((row: any) => {
                         let newRow: { time: string; [key: string]: string } = { time: row.time };
                         days.forEach(day => {
-                            // Hvis der er et ord, men det ikke er i vores dropdown, sætter vi det til custom
                             if (row[day] && row[day].keyword) {
                                 const keyword = row[day].keyword;
-                                // Her antager vi, at hvis det ikke er i activities, så var det 'custom'
-                                // For at gøre det simpelt lader vi dropdownen stå på custom, hvis det ikke matcher scenariet
-                                newRow[day] = "custom"; 
-                                newRow[day + "_custom"] = keyword;
+                                // Automatically match if present in JSON arrays, otherwise mark as custom
+                                if (allActivities.includes(keyword)) {
+                                    newRow[day] = keyword;
+                                } else {
+                                    newRow[day] = "custom";
+                                    newRow[day + "_custom"] = keyword;
+                                }
                             } else {
                                 newRow[day] = "";
                             }
@@ -57,8 +77,6 @@
 
     async function generateSchedule() {
         loading = true;
-        
-        // 2. Rens data før API kald
         const preparedRows = scheduleRows.map(row => {
             let newRow: { time: string; [key: string]: string } = { time: row.time };
             days.forEach(day => {
@@ -82,7 +100,6 @@
             const data = await response.json();
             if (data.success) {
                 generatedSchedule = data.schedule;
-                // Generer det rigtige delbare link baseret på Svelte's hash-routing
                 shareLink = window.location.origin + "/#/view-schedule/" + data.id;
                 toastr.success("Ugeskema genereret og er klar til deling! 📅");
             } else {
@@ -95,14 +112,6 @@
             loading = false;
         }
     }
-
-    let scenarios: { [key: string]: string[] } = {
-        "school": ["Dansk", "Matematik", "Pause", "Frokost", "Idræt"],
-        "home": ["Børste tænder", "Morgenmad", "Lege", "Pause", "Sove"]
-    };
-    
-    let selectedScenario = "school";
-    $: activities = scenarios[selectedScenario] || [];
 </script>
 
 <main>
@@ -136,9 +145,15 @@
                             <td>
                                 <select bind:value={row[day]}>
                                     <option value="">-- Vælg --</option>
-                                    {#each activities as act}
-                                        <option value={act}>{act}</option>
+                                    
+                                    {#each currentSubcategories as sub}
+                                        <optgroup label={sub.label}>
+                                            {#each sub.activities as act}
+                                                <option value={act}>{act}</option>
+                                            {/each}
+                                        </optgroup>
                                     {/each}
+                                    
                                     <option value="custom">Andet...</option>
                                 </select>
 
@@ -194,9 +209,6 @@
                 🖨️ Eksporter som PDF / Print
             </button>
         </div>
-
-        <div class="final-schedule">
-            </div>
     {/if}
 
     {#if shareLink}
@@ -219,11 +231,9 @@
             </div>
         </div>
     {/if}
-
 </main>
 
 <style>
-    /* Tilføj dette til din eksisterende style */
     .share-box {
         background: #f0f7ff;
         border: 2px solid #007bff;
@@ -245,7 +255,6 @@
     }
     .share-box h3 { margin-top: 0; color: #0056b3; }
 
-    /* CSS er uændret */
     table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background: white; }
     th, td { border: 1px solid #ddd; padding: 8px; }
     input, select { width: 100%; border: 1px solid #ddd; padding: 5px; }

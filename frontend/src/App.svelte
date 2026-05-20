@@ -37,16 +37,6 @@
         
         return () => window.removeEventListener('hashchange', handleHashChange);
     });
-    // ------------------------
-
-    function handleLogin() {
-        user.set({ name: 'Pædagog', role: 'admin' });
-    }
-
-    function handleLogout() {
-        user.set(null);
-        currentPage.set('home');
-    }
 </script>
 
 <main>
@@ -58,15 +48,6 @@
             <button class:active={$currentPage === 'home'} on:click={() => { window.location.hash = ''; currentPage.set('home'); }}>Hjem</button>
             <button class:active={$currentPage === 'create-story'} on:click={() => { window.location.hash = ''; currentPage.set('create-story'); }}>Ny Historie</button>
             <button class:active={$currentPage === 'create-schedule'} on:click={() => { window.location.hash = '#/create-schedule'; currentPage.set('create-schedule'); }}>Nyt Ugeskema</button>
-        </div>
-        
-        <div class="auth">
-            {#if $user}
-                <span>Logget ind som {$user.name}</span>
-                <button on:click={handleLogout} class="logout-btn">Log ud</button>
-            {:else}
-                <button on:click={handleLogin} class="login-btn">Log ind</button>
-            {/if}
         </div>
     </nav>
 
@@ -94,12 +75,6 @@
     .nav-links button { background: none; border: none; padding: 0.5rem 1rem; font-size: 1rem; color: #666; cursor: pointer; border-radius: 4px; transition: all 0.2s;}
     .nav-links button:hover { background: #f0f2f5; color: #2c3e50; }
     .nav-links button.active { background: #e3f2fd; color: #0d6efd; font-weight: 500;}
-    .auth { display: flex; align-items: center; gap: 1rem; }
-    .login-btn, .logout-btn { padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: 500;}
-    .login-btn { background: #0d6efd; color: white; border: none;}
-    .login-btn:hover { background: #0b5ed7;}
-    .logout-btn { background: white; color: #dc3545; border: 1px solid #dc3545;}
-    .logout-btn:hover { background: #dc3545; color: white;}
     .content { max-width: 1200px; margin: 0 auto; padding: 0 2rem;}
 
     @media print {
