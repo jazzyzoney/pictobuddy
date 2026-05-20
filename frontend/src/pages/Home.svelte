@@ -6,7 +6,7 @@
     <section class="hero">
         <h1>Velkommen til Pictogram Storyteller</h1>
         <p>Hjælp dit barn med at få struktur på hverdagen ved hjælp af AI-genererede piktogrammer.</p>
-        <button on:click={() => $currentPage = 'create'}>Kom i gang ✨</button>
+        <button on:click={() => { window.location.hash = '#/create-story'; currentPage.set('create-story'); }}>Kom i gang ✨</button>
     </section>
 </div>
 

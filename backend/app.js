@@ -1,14 +1,10 @@
 import express from "express" 
 import "dotenv/config" 
-import http from "http"
 import cors from "cors"
-import { Server } from "socket.io"
 
 import session from "express-session" 
 
 const app = express()
-
-const server = http.createServer(app)
 
 app.use(express.json())
 
@@ -25,17 +21,7 @@ app.use(session({
     cookie: { secure: false } 
 })) 
 
-const io = new Server(server, {
-    cors: {
-        origin: "http://localhost:5173",
-        methods: ["GET", "POST", "PUT", "DELETE", "PATCH"]
-    }
-})
 
-app.use((req, res, next) => {
-    req.io = io
-    next()
-})
 
 //access router 
 import storyRouter from "./routers/storyRouter.js" 
@@ -46,4 +32,4 @@ app.all("/{*splat}", (req, res) => {
 })
 
 const PORT = 8080 
-server.listen(PORT, () => console.log("Server running on port", PORT)) 
+app.listen(PORT, () => console.log("Server running on port", PORT)) 
