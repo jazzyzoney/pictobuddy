@@ -56,6 +56,8 @@
             <CreateStory />
         {:else if $currentPage === 'create-schedule'}
             <CreateSchedule />
+        {:else if $currentPage === 'view-schedule'}
+            <ViewSchedule id={currentScheduleId} />
         {/if}
     </div>
 </main>
