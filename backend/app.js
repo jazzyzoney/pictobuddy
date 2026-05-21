@@ -21,12 +21,10 @@ app.use(session({
     cookie: { secure: false } 
 })) 
 
-
-
-//access router 
 import storyRouter from "./routers/storyRouter.js" 
 app.use(storyRouter) 
 
+//fallback
 app.all("/{*splat}", (req, res) => { 
     res.send(`<h1>404</h1> <h3>Didn't find a matching route</h3>`)
 })

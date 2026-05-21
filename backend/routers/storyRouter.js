@@ -10,18 +10,17 @@ const __dirname = path.dirname(__filename)
 
 const router = Router()
 
-// SIKKER INDLÆSNING AF SPROGFIL
 let daLocale;
 try {
     const localePath = path.join(__dirname, '../locales/da.json');
     daLocale = JSON.parse(fs.readFileSync(localePath, 'utf8'));
 } catch (err) {
     console.error("❌ Kunne ikke indlæse da.json. Tjek stien!", err.message);
-    daLocale = { mappings: {} }; // Fallback så appen ikke crasher
+    daLocale = { mappings: {} }; //fallback
 }
 
 // ---------------------------------------------------------
-// RUTE 1: STORYTELLER (Fri tekst til piktogrammer)
+// RUTE 1: STORYTELLER
 // ---------------------------------------------------------
 router.post('/api/stories/generate', async (req, res) => {
     const { text } = req.body
@@ -119,7 +118,7 @@ router.post('/api/stories/generate', async (req, res) => {
 
 
 // ---------------------------------------------------------
-// RUTE 2: GENERER UGESKEMA (i18n + AI + Database)
+// RUTE 2: GENERER UGESKEMA
 // ---------------------------------------------------------
 router.post('/api/schedules/generate', async (req, res) => {
     const { rows } = req.body;
@@ -129,7 +128,6 @@ router.post('/api/schedules/generate', async (req, res) => {
     const finalSchedule = [];
 
     try {
-        // 1. Byg skemaet med piktogrammer
         for (let row of rows) {
             let processedRow = { time: row.time };
             
@@ -171,14 +169,12 @@ router.post('/api/schedules/generate', async (req, res) => {
             }
             finalSchedule.push(processedRow);
         }
-
-        // 2. Gem i databasen EN GANG
+        
         const result = await db.run(
             `INSERT INTO schedules (title, schedule_json) VALUES (?, ?)`,
             ["Ugeskema", JSON.stringify(finalSchedule)]
         );
 
-        // 3. Send ét samlet svar tilbage med ID'et
         return res.json({ 
             success: true, 
             schedule: finalSchedule,
@@ -195,7 +191,7 @@ router.post('/api/schedules/generate', async (req, res) => {
 
 
 // ---------------------------------------------------------
-// RUTE 3: HENT ET SPECIFIKT SKEMA (Til links / PDF visning)
+// RUTE 3: HENT ET SPECIFIKT SKEMA
 // ---------------------------------------------------------
 router.get('/api/schedules/:id', async (req, res) => {
     try {

@@ -2,8 +2,6 @@
     import toastr from 'toastr';
     import 'toastr/build/toastr.min.css';
     import { onMount } from 'svelte';
-    
-    // Import your updated da.json localization file directly
     import daLocale from '../locales/da.json';
 
     let loading = false;
@@ -48,7 +46,6 @@
                         days.forEach(day => {
                             if (row[day] && row[day].keyword) {
                                 const keyword = row[day].keyword;
-                                // Automatically match if present in JSON arrays, otherwise mark as custom
                                 if (allActivities.includes(keyword)) {
                                     newRow[day] = keyword;
                                 } else {
@@ -213,7 +210,7 @@
 
     {#if shareLink}
         <div class="share-box no-print">
-            <h3>✨ Skemaet er gemt og klar</h3>
+            <h3>✨ Skemaet er gemt og klar til deling</h3>
             <p>Kopier linket herunder for at gemme det til senere eller dele det med andre:</p>
             <div class="copy-container">
                 <input readonly value={shareLink} id="shareInput" />
@@ -224,11 +221,7 @@
                     toastr.success("Link kopieret til udklipsholder! 📋");
                 }}>Kopier link</button>
             </div>
-            <div style="margin-top: 15px;">
-                <button class="primary" on:click={() => window.print()}>
-                    🖨️ Gem som PDF / Print nu
-                </button>
-            </div>
+
         </div>
     {/if}
 </main>
