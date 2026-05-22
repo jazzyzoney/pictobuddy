@@ -10,6 +10,15 @@ const __dirname = path.dirname(__filename)
 
 const router = Router()
 
+function normalizeMappingKey(value) {
+    return value
+        .toLowerCase()
+        .replace(/æ/g, 'ae')
+        .replace(/ø/g, 'oe')
+        .replace(/å/g, 'aa')
+        .replace(/[^a-z0-9]/g, '')
+}
+
 let daLocale;
 try {
     const localePath = path.join(__dirname, '../locales/da.json');
@@ -135,13 +144,13 @@ router.post('/api/schedules/generate', async (req, res) => {
                 let activity = row[day]?.trim() || "";
                 
                 if (activity !== "") {
-                    const activityLower = activity.toLowerCase();
+                    const activityKey = normalizeMappingKey(activity);
                     let englishKeyword = "";
                     let manualId = null;
 
-                    if (daLocale.mappings[activityLower]) {
-                        englishKeyword = daLocale.mappings[activityLower].en;
-                        manualId = daLocale.mappings[activityLower].manualId;
+                    if (daLocale.mappings[activityKey]) {
+                        englishKeyword = daLocale.mappings[activityKey].en;
+                        manualId = daLocale.mappings[activityKey].manualId;
                     } else {
                         const prompt = `Translate to 1 English keyword for pictogram search: "${activity}". Return only the word.`;
                         const completion = await groq.chat.completions.create({

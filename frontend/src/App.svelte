@@ -1,12 +1,14 @@
 <script>
-    import { currentPage } from './stores/pageStore.js';
+    import { onMount } from 'svelte';
     import Home from './pages/Home.svelte';
     import CreateStory from './pages/CreateStory.svelte';
     import CreateSchedule from './pages/CreateSchedule.svelte';
-    import ViewSchedule from './pages/ViewSchedule.svelte'; // Husk at importere din nye side!
-    import { onMount } from 'svelte';
+    import ViewSchedule from './pages/ViewSchedule.svelte';
+    
+    import { currentPage } from './stores/pageStore.js';
 
     // Variabel til at holde skema-ID'et hvis vi er på ViewSchedule siden
+    /** @type {string | null} */
     let currentScheduleId = null;
 
     // --- EN SIMPEL ROUTER ---
@@ -35,113 +37,160 @@
         
         return () => window.removeEventListener('hashchange', handleHashChange);
     });
+    
+    /** @param {string} page */
+    function navigate(page) {
+        $currentPage = page;
+    }
 </script>
 
-<main>
-    <nav class="no-print"> <div class="logo">
-            <span class="icon">✨</span>
-            PictoBuddy
-        </div>
-        <div class="nav-links">
-            <button class:active={$currentPage === 'home'} on:click={() => { window.location.hash = ''; currentPage.set('home'); }}>Hjem</button>
-            <button class:active={$currentPage === 'create-story'} on:click={() => { window.location.hash = ''; currentPage.set('create-story'); }}>Ny Historie</button>
-            <button class:active={$currentPage === 'create-schedule'} on:click={() => { window.location.hash = '#/create-schedule'; currentPage.set('create-schedule'); }}>Nyt Ugeskema</button>
-        </div>
-    </nav>
+<header>
+    <div class="branding">
+        <img src="./images/pictograms.png" alt="Logo" class="site-logo" />
+        
+        <h1 class="site-title">
+            <a href="/" on:click|preventDefault={() => navigate('home')}>
+                PictoBuddy
+            </a>
+        </h1>
 
-    <div class="content">
-        {#if $currentPage === 'home'}
-            <Home />
-        {:else if $currentPage === 'create-story'}
-            <CreateStory />
-        {:else if $currentPage === 'create-schedule'}
-            <CreateSchedule />
-        {:else if $currentPage === 'view-schedule'}
-            <ViewSchedule id={currentScheduleId} />
-        {/if}
+    </div>
+
+    <nav>
+        <button on:click={() => navigate('home')} class:active={$currentPage === 'home'}>
+            Hjem
+        </button>
+        
+        <button on:click={() => navigate('create-story')} class:active={$currentPage === 'create-story'}>
+            Ny Historie
+        </button>
+        
+        <button on:click={() => navigate('create-schedule')} class:active={$currentPage === 'create-schedule'}>
+            Nyt Ugeskema
+        </button>
+    </nav>
+</header>
+
+<main>
+    <div class="content-card">
+        {#key $currentPage} 
+            {#if $currentPage === 'home'}
+                <Home />
+            {:else if $currentPage === 'create-story'}
+                <CreateStory />
+            {:else if $currentPage === 'create-schedule'}
+                <CreateSchedule />
+            {:else if $currentPage === 'view-schedule'}
+                <ViewSchedule id={currentScheduleId ?? ''} />
+            {/if}
+        {/key}
     </div>
 </main>
 
 <style>
-    /* Global layout */
-    main { 
-        font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-        background-color: #F7F9FB;
-        min-height: 100vh;
-        color: #2C3E50;
+    :global(body) {
+        font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-    
-    /* Navigation Bar */
-    nav { 
-        background: white; 
-        padding: 1.2rem 2rem; 
-        display: flex; 
-        justify-content: space-between; 
-        align-items: center;
+
+    header {
+        background-color: white;
+        padding: 1.2rem 2rem;
         box-shadow: 0 2px 8px rgba(255, 107, 107, 0.08);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
         border-bottom: 3px solid #FFE66D;
+        
+        width: 100%;
+        position: sticky; 
+        top: 0;
+        z-index: 1000;
     }
-    
-    .logo { 
-        font-size: 1.8rem; 
-        font-weight: 800; 
-        color: #FF6B6B;
-        display: flex; 
-        align-items: center; 
+
+    .branding {
+        display: flex;
+        align-items: center;
         gap: 0.8rem;
+        margin-bottom: 0;
+        width: auto;
+    }
+
+    .site-logo {
+        height: 60px;
+        width: auto;
+    }
+
+    .site-title {
+        font-family: inherit;
+        margin: 0;
+        font-size: 2.5rem;
+        color: #FF6B6B;
         letter-spacing: -0.5px;
+        font-weight: 750;
     }
 
-    .logo .icon {
-        font-size: 2rem;
+    .site-title a {
+        text-decoration: none;
+        color: inherit;
+        cursor: pointer;
     }
 
-    /* Menu container - MORE SPACIOUS */
-    .nav-links { 
+    nav { 
         display: flex; 
-        gap: 1rem;
-        background: transparent;
-        padding: 0;
+        gap: 1rem; 
+        padding: 0; 
+        justify-content: center;
+        flex-wrap: nowrap;
+        width: auto;
+        background-color: transparent;
+        border-top: 0;
     }
-    
-    .nav-links button { 
-        background: #F5F7FA;
+
+    button {
+        font-family: inherit;
+        padding: 0.75rem 1.5rem;
+        cursor: pointer;
         border: 2px solid transparent;
-        padding: 0.75rem 1.5rem; 
-        font-size: 1rem; 
-        color: #2C3E50; 
-        cursor: pointer; 
-        border-radius: 12px; 
-        font-weight: 600; 
+        background: #F5F7FA;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 750;
+        color: #2C3E50;
         transition: all 0.25s ease;
         box-shadow: 0 2px 6px rgba(0,0,0,0.05);
     }
-    
-    .nav-links button:hover { 
-        background: #4ECDC4;
+
+    button:hover { 
+        background-color: #4ECDC4; 
         color: white;
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(78, 205, 196, 0.25);
     }
-    
-    /* Active state */
-    .nav-links button.active { 
-        background: #FF6B6B;
+
+    button.active {
+        background-color: #FF6B6B;
         color: white;
         border-color: #FF5252;
         box-shadow: 0 4px 16px rgba(255, 107, 107, 0.3);
     }
 
-    /* Content Area */
-    .content { 
-        max-width: 1200px; 
-        margin: 2rem auto; 
-        padding: 0 2rem;
+    main {
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+        width: 90%;
+    }
+
+    .content-card {
+        background: rgba(255, 255, 255, 0.8);
+        padding: 20px;
+        border-radius: 20px;
     }
 
     @media print {
-        .no-print { display: none !important; }
-        .content { padding: 0; margin: 0; max-width: 100%; }
-        main { background-color: white; }
+        header { display: none !important; }
+        .content-card { padding: 0; margin: 0; max-width: 100%; }
+        main { background-color: white; padding: 0; }
     }
 </style>
