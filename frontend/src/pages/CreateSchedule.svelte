@@ -261,4 +261,23 @@
     .pic-cell { background: white; padding: 5px; display: flex; flex-direction: column; align-items: center; min-height: 80px; }
     .pic-cell img { width: 50px; height: 50px; object-fit: contain; }
     .pic-cell span { font-size: 0.7rem; margin-top: 5px; text-align: center; }
+
+    @media print {
+        .no-print { display: none !important; }
+        :global(body) { background: white; margin: 0; padding: 0; }
+        main { background: white; padding: 0; margin: 0 auto; }
+        h1, .controls, .editor, .actions, .share-box { display: none !important; }
+        .final-schedule {
+            display: grid;
+            width: auto;
+            max-width: 1200px;
+            margin: 0 auto;
+            border: none;
+            padding: 10px;
+            gap: 5px;
+            background: white;
+        }
+        .grid-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: #d63384 !important; color: white !important; }
+        .pic-cell { border: 1px solid #000; background: white; }
+    }
 </style>

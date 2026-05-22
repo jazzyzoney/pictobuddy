@@ -82,12 +82,13 @@
     .pic-cell img { width: 60px; height: 60px; object-fit: contain; }
     .pic-cell span { font-size: 0.75rem; margin-top: 5px; text-align: center;}
     
-    /* CSS der gør magien for PDF-eksporten */
     @media print {
-        .no-print { display: none !important; } /* Skjul knapper */
-        body, main { background: white; padding: 0; margin: 0; }
-        .final-schedule { width: 100%; border: none; padding: 0; gap: 2px; background: white;}
-        .grid-header { -webkit-print-color-adjust: exact; background-color: #333 !important; color: white !important; }
-        .pic-cell { border: 1px solid #000; }
+        .no-print { display: none !important; }
+        :global(body) { background: white; padding: 0; margin: 0; }
+        main { background: white; padding: 0; margin: 0 auto; max-width: 1200px; }
+        .loading, .error, .header-actions { display: none !important; }
+        .final-schedule { width: auto; max-width: 1200px; margin: 0 auto; border: none; padding: 10px; gap: 5px; background: white; }
+        .grid-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: #333 !important; color: white !important; }
+        .pic-cell { border: 1px solid #000; background: white; }
     }
 </style>
