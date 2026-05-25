@@ -85,5 +85,5 @@ autoWipeExpiredData();
 const TWELVE_HOURS = 12 * 60 * 60 * 1000;
 setInterval(autoWipeExpiredData, TWELVE_HOURS);
 
-const PORT = 8080 
+const PORT = process.env.PORT || 8080 
 app.listen(PORT, () => console.log("Server running on port", PORT)) 
