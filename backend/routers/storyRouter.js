@@ -29,7 +29,7 @@ try {
 }
 
 // ---------------------------------------------------------
-// RUTE 1: STORYTELLER
+// RUTE 1: STORYTELLER (HISTORIER)
 // ---------------------------------------------------------
 router.post('/api/stories/generate', async (req, res) => {
     const { text } = req.body
@@ -106,17 +106,15 @@ router.post('/api/stories/generate', async (req, res) => {
             }
         }
 
+        // Rettet til Turso execute() syntaks
         const result = await db.execute({
             sql: `INSERT INTO stories (title, raw_text, pictograms_json) VALUES (?, ?, ?)`,
             args: [text.substring(0, 30) + "...", text, JSON.stringify(pictogramSequence)]
         });
 
-        // To access the last inserted ID in Turso:
-        const storyId = Number(result.lastInsertRowid);
-
         return res.json({ 
             success: true, 
-            storyId: result.lastID, 
+            storyId: Number(result.lastInsertRowid), // Henter ID korrekt fra Turso
             pictograms: pictogramSequence 
         })
 
@@ -130,7 +128,7 @@ router.post('/api/stories/generate', async (req, res) => {
 
 
 // ---------------------------------------------------------
-// RUTE 2: GENERER UGESKEMA
+// RUTE 2: GENERER UGESKEMA (SKEMAER)
 // ---------------------------------------------------------
 router.post('/api/schedules/generate', async (req, res) => {
     const { rows } = req.body;
@@ -182,18 +180,16 @@ router.post('/api/schedules/generate', async (req, res) => {
             finalSchedule.push(processedRow);
         }
         
+        // Rettet: Bruger ugeskema variabler i stedet for den manglende 'text' variabel
         const result = await db.execute({
-            sql: `INSERT INTO stories (title, raw_text, pictograms_json) VALUES (?, ?, ?)`,
-            args: [text.substring(0, 30) + "...", text, JSON.stringify(pictogramSequence)]
+            sql: `INSERT INTO schedules (title, schedule_json) VALUES (?, ?)`,
+            args: ["Ugeskema", JSON.stringify(finalSchedule)]
         });
-
-        // To access the last inserted ID in Turso:
-        const storyId = Number(result.lastInsertRowid);
 
         return res.json({ 
             success: true, 
             schedule: finalSchedule,
-            id: result.lastID 
+            id: Number(result.lastInsertRowid) // Henter ID korrekt fra Turso
         });
 
     } catch (error) {
@@ -210,12 +206,14 @@ router.post('/api/schedules/generate', async (req, res) => {
 // ---------------------------------------------------------
 router.get('/api/schedules/:id', async (req, res) => {
     try {
+        // Rettet til Turso execute() syntaks
         const result = await db.execute({
             sql: "SELECT * FROM schedules WHERE id = ?",
             args: [req.params.id]
         });
-        const schedule = result.rows[0]; // Gets the first matching record
-
+        
+        const schedule = result.rows[0];
+        
         if (!schedule) {
             return res.status(404).json({ success: false, error: "Skemaet blev ikke fundet." });
         }
