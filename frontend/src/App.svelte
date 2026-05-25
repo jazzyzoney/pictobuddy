@@ -125,7 +125,7 @@
         font-family: inherit;
         margin: 0;
         font-size: 2.5rem;
-        color: #FF6B6B;
+        color: #c9a0dc;
         letter-spacing: -0.5px;
         font-weight: 750;
     }
@@ -162,17 +162,17 @@
     }
 
     button:hover { 
-        background-color: #4ECDC4; 
+        background-color: #edd666; 
         color: white;
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(78, 205, 196, 0.25);
+        box-shadow: 0 4px 12px #ddc860;
     }
 
     button.active {
-        background-color: #FF6B6B;
+        background-color: #c9a0dc;
         color: white;
-        border-color: #FF5252;
-        box-shadow: 0 4px 16px rgba(255, 107, 107, 0.3);
+        border-color: #b39eb5;
+        box-shadow: 0 4px 16px #c9a0dc;
     }
 
     main {
