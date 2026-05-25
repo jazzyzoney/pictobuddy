@@ -17,8 +17,10 @@
         pictograms = [];
 
         try {
+            const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+
             // Vi kalder din nye router-sti (husk credentials: 'include' hvis du bruger sessioner)
-            const response = await fetch('http://localhost:8080/api/stories/generate', {
+            const response = await fetch(`${API_URL}/api/stories/generate`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text: storyText }),
