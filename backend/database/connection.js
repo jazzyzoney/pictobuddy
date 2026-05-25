@@ -1,18 +1,15 @@
-import sqlite3 from 'sqlite3'
-import { open } from 'sqlite'
-import path from 'path'
-import { fileURLToPath } from 'url'
+// backend/database/connection.js
+import { createClient } from "@libsql/client";
+import "dotenv/config";
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename);
+// Detects if you are testing locally or live on Render
+const isProduction = process.env.NODE_ENV === 'production';
 
-const dbPath = path.resolve(__dirname, '../auth.db')
+const connection = createClient({
+    url: isProduction ? process.env.TURSO_DATABASE_URL : "file:../auth.db",
+    authToken: isProduction ? process.env.TURSO_AUTH_TOKEN : undefined,
+});
 
-const connection = await open({
-    filename: dbPath,
-    driver: sqlite3.Database
-})
+console.log(`✅ Connected securely to ${isProduction ? 'Turso Cloud' : 'Local SQLite file'}`);
 
-console.log('✅ Connected to SQLite database at:', dbPath)
-
-export default connection
+export default connection;

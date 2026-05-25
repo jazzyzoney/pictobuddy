@@ -5,7 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 // https://vite.dev/config/
 export default defineConfig({
   // Crucial for GitHub Pages: tells Vite to look for assets relative to your repo path
-  base: '/pictobuddy/', 
+  base: '/', 
   plugins: [
     svelte(),
     VitePWA({

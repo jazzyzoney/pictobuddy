@@ -106,10 +106,13 @@ router.post('/api/stories/generate', async (req, res) => {
             }
         }
 
-        const result = await db.run(
-            `INSERT INTO stories (title, raw_text, pictograms_json) VALUES (?, ?, ?)`,
-            [text.substring(0, 30) + "...", text, JSON.stringify(pictogramSequence)]
-        );
+        const result = await db.execute({
+            sql: `INSERT INTO stories (title, raw_text, pictograms_json) VALUES (?, ?, ?)`,
+            args: [text.substring(0, 30) + "...", text, JSON.stringify(pictogramSequence)]
+        });
+
+        // To access the last inserted ID in Turso:
+        const storyId = Number(result.lastInsertRowid);
 
         return res.json({ 
             success: true, 
@@ -179,10 +182,13 @@ router.post('/api/schedules/generate', async (req, res) => {
             finalSchedule.push(processedRow);
         }
         
-        const result = await db.run(
-            `INSERT INTO schedules (title, schedule_json) VALUES (?, ?)`,
-            ["Ugeskema", JSON.stringify(finalSchedule)]
-        );
+        const result = await db.execute({
+            sql: `INSERT INTO stories (title, raw_text, pictograms_json) VALUES (?, ?, ?)`,
+            args: [text.substring(0, 30) + "...", text, JSON.stringify(pictogramSequence)]
+        });
+
+        // To access the last inserted ID in Turso:
+        const storyId = Number(result.lastInsertRowid);
 
         return res.json({ 
             success: true, 
@@ -204,8 +210,12 @@ router.post('/api/schedules/generate', async (req, res) => {
 // ---------------------------------------------------------
 router.get('/api/schedules/:id', async (req, res) => {
     try {
-        const schedule = await db.get("SELECT * FROM schedules WHERE id = ?", [req.params.id]);
-        
+        const result = await db.execute({
+            sql: "SELECT * FROM schedules WHERE id = ?",
+            args: [req.params.id]
+        });
+        const schedule = result.rows[0]; // Gets the first matching record
+
         if (!schedule) {
             return res.status(404).json({ success: false, error: "Skemaet blev ikke fundet." });
         }
