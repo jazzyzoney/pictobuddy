@@ -5,7 +5,7 @@ import { VitePWA } from 'vite-plugin-pwa'
 // https://vite.dev/config/
 export default defineConfig({
   // Crucial for GitHub Pages: tells Vite to look for assets relative to your repo path
-  base: '/pictogram-storyteller/', 
+  base: '/pictobuddy/', 
   plugins: [
     svelte(),
     VitePWA({
@@ -15,7 +15,7 @@ export default defineConfig({
       manifest: {
         name: 'PictoBuddy',
         short_name: 'PB',
-        description: 'An interactive application to tell stories using pictograms.',
+        description: 'Visual storytelling made simple—create pictogram-based stories and schedules for meaningful communication.',
         theme_color: '#ffffff',
         background_color: '#ffffff',
         display: 'standalone',
