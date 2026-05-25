@@ -32,10 +32,32 @@ app.all("/{*splat}", (req, res) => {
 // backend/app.js
 import db from "./database/connection.js";
 
+// backend/app.js
+
 async function autoWipeExpiredData() {
     console.log("🧹 Running scheduled database maintenance check...");
     try {
-        // Deletes any entry where created_at happened more than 30 days ago
+        // 1. Auto-create tables on launch if they don't exist yet (Prevents "no such table" errors)
+        await db.execute(`
+            CREATE TABLE IF NOT EXISTS stories (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT,
+                raw_text TEXT,
+                pictograms_json TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        await db.execute(`
+            CREATE TABLE IF NOT EXISTS schedules (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT,
+                schedule_json TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        `);
+
+        // 2. Now run your 30-day auto-wipe commands safely
         const cleanStories = await db.execute(
             "DELETE FROM stories WHERE created_at < datetime('now', '-30 days')"
         );
@@ -49,7 +71,7 @@ async function autoWipeExpiredData() {
             console.log("✨ Maintenance complete: No expired data found.");
         }
     } catch (err) {
-        console.error("❌ 30-day database auto-wipe cleanup task failed:", err.message);
+        console.error("❌ Database initialization or auto-wipe cleanup task failed:", err.message);
     }
 }
 
