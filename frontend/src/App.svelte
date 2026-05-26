@@ -3,6 +3,7 @@
     import Home from './pages/Home.svelte';
     import CreateStory from './pages/CreateStory.svelte';
     import CreateSchedule from './pages/CreateSchedule.svelte';
+    import About from './pages/About.svelte';
     import ViewSchedule from './pages/ViewSchedule.svelte';
     
     import { currentPage } from './stores/pageStore.js';
@@ -21,10 +22,23 @@
             currentScheduleId = hash.replace('#/view-schedule/', '');
             // Skift visningen til ViewSchedule
             currentPage.set('view-schedule');
-        } 
+        }
         // Lyt også efter edit links: #/create-schedule?edit=7
         else if (hash.startsWith('#/create-schedule')) {
+            currentScheduleId = null;
             currentPage.set('create-schedule');
+        }
+        else if (hash.startsWith('#/create-story')) {
+            currentScheduleId = null;
+            currentPage.set('create-story');
+        }
+        else if (hash.startsWith('#/about')) {
+            currentScheduleId = null;
+            currentPage.set('about');
+        }
+        else {
+            currentScheduleId = null;
+            currentPage.set('home');
         }
     }
 
@@ -41,55 +55,98 @@
     /** @param {string} page */
     function navigate(page) {
         $currentPage = page;
+
+        if (page === 'home') {
+            window.location.hash = '#/home';
+        } else if (page === 'create-story') {
+            window.location.hash = '#/create-story';
+        } else if (page === 'create-schedule') {
+            window.location.hash = '#/create-schedule';
+        } else if (page === 'about') {
+            window.location.hash = '#/about';
+        }
     }
 </script>
 
-<header>
-    <div class="branding">
-        <img src="./images/pictograms.png" alt="Logo" class="site-logo" />
-        
-        <h1 class="site-title">
-            <a href="/" on:click|preventDefault={() => navigate('home')}>
-                PictoBuddy
-            </a>
-        </h1>
+<div class="app-shell">
+    <header>
+        <div class="branding">
+            <img src="./images/pictograms.png" alt="Logo" class="site-logo" />
+            
+            <h1 class="site-title">
+                <a href="/" on:click|preventDefault={() => navigate('home')}>
+                    PictoBuddy
+                </a>
+            </h1>
 
-    </div>
+        </div>
 
-    <nav>
-        <button on:click={() => navigate('home')} class:active={$currentPage === 'home'}>
-            Hjem
-        </button>
-        
-        <button on:click={() => navigate('create-story')} class:active={$currentPage === 'create-story'}>
-            Ny Historie
-        </button>
-        
-        <button on:click={() => navigate('create-schedule')} class:active={$currentPage === 'create-schedule'}>
-            Nyt Ugeskema
-        </button>
-    </nav>
-</header>
+        <nav>
+            <button on:click={() => navigate('home')} class:active={$currentPage === 'home'}>
+                Hjem
+            </button>
+            
+            <button on:click={() => navigate('create-story')} class:active={$currentPage === 'create-story'}>
+                Ny Historie
+            </button>
+            
+            <button on:click={() => navigate('create-schedule')} class:active={$currentPage === 'create-schedule'}>
+                Nyt Ugeskema
+            </button>
+        </nav>
+    </header>
 
-<main>
-    <div class="content-card">
-        {#key $currentPage} 
-            {#if $currentPage === 'home'}
-                <Home />
-            {:else if $currentPage === 'create-story'}
-                <CreateStory />
-            {:else if $currentPage === 'create-schedule'}
-                <CreateSchedule />
-            {:else if $currentPage === 'view-schedule'}
-                <ViewSchedule id={currentScheduleId ?? ''} />
-            {/if}
-        {/key}
-    </div>
-</main>
+    <main>
+        <div class="content-card">
+            {#key $currentPage} 
+                {#if $currentPage === 'home'}
+                    <Home />
+                {:else if $currentPage === 'create-story'}
+                    <CreateStory />
+                {:else if $currentPage === 'create-schedule'}
+                    <CreateSchedule />
+                {:else if $currentPage === 'about'}
+                    <About />
+                {:else if $currentPage === 'view-schedule'}
+                    <ViewSchedule id={currentScheduleId ?? ''} />
+                {/if}
+            {/key}
+        </div>
+    </main>
+
+    <footer>
+        <div class="footer-inner">
+            <div class="footer-left">
+                <a href="https://arasaac.org/" target="_blank" rel="noreferrer" aria-label="Open ARASAAC website">
+                    <img src="/images/arasaac-logo.png" alt="ARASAAC logo" class="arasaac-logo" />
+                </a>
+            </div>
+
+            <div class="footer-center">
+                <p>
+                    Copyright © 2026 PictoBuddy
+                </p>
+            </div>
+
+            <div class="footer-right">
+                <a href="#/about" on:click|preventDefault={() => navigate('about')}>About & License</a>
+            </div>
+        </div>
+    </footer>
+</div>
 
 <style>
     :global(body) {
         font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        min-height: 100vh;
+        background: #f7f7fb;
+    }
+
+    .app-shell {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
     }
 
     header {
@@ -180,6 +237,7 @@
         max-width: 1200px;
         margin: 0 auto;
         width: 90%;
+        flex: 1;
     }
 
     .content-card {
@@ -188,8 +246,63 @@
         border-radius: 20px;
     }
 
+    footer {
+        margin-top: auto;
+        padding: 10px 1.25rem 12px;
+        background: rgba(255, 255, 255, 0.85);
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .footer-inner {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 0.75rem;
+        align-items: center;
+    }
+
+    .footer-left {
+        display: flex;
+        align-items: center;
+    }
+
+    .arasaac-logo {
+        width: 110px;
+        max-width: 32vw;
+        height: auto;
+        flex-shrink: 0;
+    }
+
+    .footer-center {
+        text-align: center;
+    }
+
+    .footer-center p {
+        margin: 0;
+        color: #4a4a4a;
+        font-size: 0.85rem;
+        line-height: 1.35;
+    }
+
+    .footer-right {
+        justify-self: end;
+    }
+
+    .footer-right a {
+        color: #c9a0dc;
+        font-weight: 700;
+        text-decoration: none;
+        font-size: 0.9rem;
+    }
+
+    .footer-right a:hover {
+        text-decoration: underline;
+    }
+
     @media print {
         header { display: none !important; }
+        footer { display: none !important; }
         .content-card { padding: 0; margin: 0; max-width: 100%; }
         main { background-color: white; padding: 0; }
     }
