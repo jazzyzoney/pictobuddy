@@ -5,6 +5,7 @@
 
     let storyText = "";
     let loading = false;
+    /** @type {{ url: string; keyword: string }[]} */
     let pictograms = []; // Her gemmer vi resultatet fra backenden
 
     async function generateStory() {
@@ -43,6 +44,10 @@
             loading = false;
         }
     }
+
+    function printStory() {
+        window.print();
+    }
 </script>
 
 <main>
@@ -77,6 +82,10 @@
                 {/each}
             </div>
         </div>
+
+        <div class="actions no-print">
+            <button on:click={printStory}>🖨️ Eksporter som PDF / Print</button>
+        </div>
     {/if}
 </main>
 
@@ -93,6 +102,20 @@
         flex-direction: column;
         gap: 15px;
         margin-bottom: 40px;
+    }
+
+    .story-result {
+        margin-top: 20px;
+    }
+
+    .actions {
+        display: flex;
+        justify-content: center;
+        margin-top: 24px;
+    }
+
+    .no-print {
+        display: flex;
     }
 
     textarea {
@@ -146,5 +169,36 @@
         margin-top: 10px;
         font-weight: bold;
         text-transform: capitalize;
+    }
+
+    @media print {
+        .no-print,
+        h1,
+        .input-section,
+        main > p {
+            display: none !important;
+        }
+
+        main {
+            max-width: 100%;
+            padding: 0;
+            margin: 0;
+            text-align: left;
+        }
+
+        .story-result {
+            margin-top: 0;
+        }
+
+        .pictogram-grid {
+            gap: 12px;
+        }
+
+        .pic-card {
+            box-shadow: none;
+            border: 1px solid #000;
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
     }
 </style>
