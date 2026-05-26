@@ -14,14 +14,14 @@
 
     <h2>Sådan bruger du det</h2>
     <ol>
-        <li>Gå til "Opret historie" (tryk på knappen nedenfor) for at starte en ny historie eller skema.</li>
-        <li>Beskriv aktiviteten eller vælg kategorier — AI genererer forslag til piktogrammer og tekst.</li>
+        <li>Gå til "Ny Historie" eller "Nyt Ugeskema" for at generere en ny historie eller skema.</li>
+        <li>Beskriv aktiviteten eller vælg ud fra kategorier — AI genererer forslag til piktogrammer og tekst.</li>
         <li>Tilpas piktogrammer og tekst, gem eller eksporter historien til print eller deling.</li>
     </ol>
 
     <h2>Hvad kan du gøre herinde</h2>
     <ul>
-        <li>Generere relevante piktogrammer automatisk via AI.</li>
+        <li>Generere relevante piktogrammer automatisk.</li>
         <li>Bygge trinvise historier og daglige skemaer.</li>
         <li>Tilpasse tekster, rækkefølge og layout.</li>
         <li>Gemme, downloade eller dele piktogram-historier med andre.</li>

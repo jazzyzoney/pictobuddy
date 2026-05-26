@@ -225,6 +225,7 @@
                     toastr.success("Link kopieret til udklipsholder! 📋");
                 }}>Kopier link</button>
             </div>
+            <p> OBS! Skemaet gemmes i 30 dage!</p>
 
         </div>
     {/if}
