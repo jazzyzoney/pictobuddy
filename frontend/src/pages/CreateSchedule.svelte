@@ -260,7 +260,7 @@
     .controls select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
     .actions { display: flex; gap: 10px; justify-content: center; margin-bottom: 40px; }
     .final-schedule { display: grid; grid-template-columns: 100px repeat(5, 1fr); gap: 5px; background: #eee; padding: 10px; border-radius: 10px; margin-bottom: 20px; }
-    .grid-header { background: #d63384; color: white; padding: 10px; font-weight: bold; text-align: center; }
+    .grid-header { background: #c9a0dc; color: white; padding: 10px; font-weight: bold; text-align: center; }
     .time-cell { background: #f8f9fa; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: bold;}
     .pic-cell { background: white; padding: 5px; display: flex; flex-direction: column; align-items: center; min-height: 80px; }
     .pic-cell img { width: 50px; height: 50px; object-fit: contain; }
@@ -281,7 +281,8 @@
             gap: 5px;
             background: white;
         }
-        .grid-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: #d63384 !important; color: white !important; }
+        .grid-header { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: #c9a0dc !important; color: white !important; }
+        .time-cell { border: 1px solid #000; background: #f8f9fa; }
         .pic-cell { border: 1px solid #000; background: white; }
     }
 </style>
